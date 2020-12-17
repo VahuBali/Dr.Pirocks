@@ -5,7 +5,7 @@ import os
 import random
 import time
 
-os.chdir("/Users/vasu/Desktop/DiscordBot/")
+os.chdir("/app")
 
 client = commands.Bot(command_prefix="vb ")
 
@@ -70,6 +70,6 @@ async def get_bank_data():
         users = json.load(f)
     return users
 
+env = os.environ.get("BOT_TOKEN")
 
-
-client.run(process.env.BOT_TOKEN)
+client.run(env)
