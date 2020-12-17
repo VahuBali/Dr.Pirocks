@@ -72,4 +72,4 @@ async def get_bank_data():
 
 
 
-client.run(process.env.Nzg4ODk1NjI4NTExMjgxMTgy.X9qKTg.C8GU8Bt9SyV_AtqHzAXkXNoVSAg)
+client.run(process.env.BOT_TOKEN)
