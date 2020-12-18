@@ -51,14 +51,14 @@ async def beg(ctx):
         json.dump(users,f)
 
 @client.command()
-async def withdraw(ctx, amount = None):
+async def withdraw(ctx, change, amount = None):
     await open_account(ctx.author)
 
     if amount == None:
         await ctx.send("Please enter the amount")
         return
 
-    bal = await update_bank(ctx.author)
+    bal = await update_bank(ctx.author, change)
 
     amount = int(amount)
 
@@ -77,14 +77,14 @@ async def withdraw(ctx, amount = None):
 
 
 @client.command()
-async def deposit(ctx, amount = None):
+async def deposit(ctx, change, amount = None):
     await open_account(ctx.author)
 
     if amount == None:
         await ctx.send("Please enter the amount")
         return
 
-    bal = await update_bank(ctx.author)
+    bal = await update_bank(ctx.author, change)
 
     amount = int(amount)
 
@@ -102,7 +102,7 @@ async def deposit(ctx, amount = None):
     await ctx.send(f"You withdrew {amount} coins!")
 
 @client.command()
-async def send(ctx,member:discord.Member, amount = None):
+async def send(ctx,change, member:discord.Member, amount = None):
     await open_account(ctx.author)
     await open_account(member)
 
@@ -111,7 +111,7 @@ async def send(ctx,member:discord.Member, amount = None):
         await ctx.send("Please enter the amount")
         return
 
-    bal = await update_bank(ctx.author)
+    bal = await update_bank(ctx.author, change)
     if amount == "all":
         amount = bal[0]
         
@@ -131,14 +131,14 @@ async def send(ctx,member:discord.Member, amount = None):
     await ctx.send(f"You gave {amount} coins!")
 
 @client.command()
-async def slots(ctx, amount = None):
+async def slots(ctx,change, amount = None):
     await open_account(ctx.author)
 
     if amount == None:
         await ctx.send("Please enter the amount")
         return
 
-    bal = await update_bank(ctx.author)
+    bal = await update_bank(ctx.author,change)
 
     amount = int(amount)
 
@@ -166,11 +166,11 @@ async def slots(ctx, amount = None):
         await ctx.send("Welcome to Poverty")
 
 @client.command()
-async def rob(ctx,member:discord.Member):
+async def rob(ctx, change, member:discord.Member):
     await open_account(ctx.author)
     await open_account(member)
 
-    bal = await update_bank(member)
+    bal = await update_bank(member,change)
 
     if bal[0]<100:
         await ctx.send("Come on man why would you rob a peasent")
@@ -218,4 +218,8 @@ async def update_bank(user, change, mode = "wallet"):
     
 
 env = os.environ.get("BOT_TOKEN")
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 client.run(env)
