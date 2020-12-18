@@ -205,10 +205,6 @@ async def get_bank_data():
         users = json.load(f)
     return users
 
-<<<<<<< Updated upstream
-env = os.environ.get("BOT_TOKEN")
-
-=======
 async def update_bank(user, change, mode = "wallet"):
     users = await get_bank_data
 
@@ -222,6 +218,4 @@ async def update_bank(user, change, mode = "wallet"):
     
 
 env = os.environ.get("BOT_TOKEN")
-
->>>>>>> Stashed changes
 client.run(env)
