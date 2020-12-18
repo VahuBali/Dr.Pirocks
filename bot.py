@@ -44,11 +44,145 @@ async def beg(ctx):
 
     earnings = random.randrange(0,101)
 
-    await ctx.send(f"Dr.Pirocks felt generous for you and gave you {earnings} coins!!")
+    await ctx.send(f"Dr.Pirocks felt generous for you and gave you {earnings} moolah!!")
     users[str(user.id)]["wallet"] += earnings
 
     with open("mainbank.json", "w") as f:
         json.dump(users,f)
+
+@client.command()
+async def withdraw(ctx, amount = None):
+    await open_account(ctx.author)
+
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
+
+    bal = await update_bank(ctx.author)
+
+    amount = int(amount)
+
+    if amount>bal[1]:
+        await ctx.send("You don't have enough money")
+        return
+
+    if amount<0:
+        await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
+        return
+
+    await update_bank(ctx.author,-1*amount)
+    await update_bank(ctx.author,amount, "bank")
+
+    await ctx.send(f"You deposited {amount} coins!")
+
+
+@client.command()
+async def deposit(ctx, amount = None):
+    await open_account(ctx.author)
+
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
+
+    bal = await update_bank(ctx.author)
+
+    amount = int(amount)
+
+    if amount>bal[0]:
+        await ctx.send("")
+        return
+
+    if amount<0:
+        await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
+        return
+
+    await update_bank(ctx.author,-1*amount)
+    await update_bank(ctx.author,amount, "bank")
+
+    await ctx.send(f"You withdrew {amount} coins!")
+
+@client.command()
+async def send(ctx,member:discord.Member, amount = None):
+    await open_account(ctx.author)
+    await open_account(member)
+
+
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
+
+    bal = await update_bank(ctx.author)
+    if amount == "all":
+        amount = bal[0]
+        
+    amount = int(amount)
+
+    if amount>bal[1]:
+        await ctx.send("")
+        return
+
+    if amount<0:
+        await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
+        return
+
+    await update_bank(ctx.author,-1*amount, "bank")
+    await update_bank(ctx.author,amount, "bank")
+
+    await ctx.send(f"You gave {amount} coins!")
+
+@client.command()
+async def slots(ctx, amount = None):
+    await open_account(ctx.author)
+
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
+
+    bal = await update_bank(ctx.author)
+
+    amount = int(amount)
+
+    if amount>bal[0]:
+        await ctx.send("")
+        return
+
+    if amount<0:
+        await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
+        return
+
+    final = []
+    for i in range(3):
+        a = random.choice(["X","O","Q"])
+
+        final.append(a)
+
+    await ctx.send(str(final))
+
+    if final[0] == final[1] or final[0] == final[2] or final[1] == final[2]:
+        await update_bank(ctx.author,2*amount)
+        await ctx.send("CONGRATS FOR WINNING")
+    else:
+        await update_bank(ctx.author,-3*amount)
+        await ctx.send("Welcome to Poverty")
+
+@client.command()
+async def rob(ctx,member:discord.Member):
+    await open_account(ctx.author)
+    await open_account(member)
+
+    bal = await update_bank(member)
+
+    if bal[0]<100:
+        await ctx.send("Come on man why would you rob a peasent")
+        return
+
+    earnings = random.randrange(0,bal[0])
+
+    await update_bank(ctx.author,earnings)
+    await update_bank(ctx.author,-1*earnings, "wallet")
+
+    await ctx.send(f"You stole {earnings} coins!")
+    
 
 async def open_account(user):
     with open("mainbank.json", "r") as f:
@@ -64,12 +198,30 @@ async def open_account(user):
 
     with open("mainbank.json", "w") as f:
         json.dump(users,f)
+    return True
 
 async def get_bank_data():
     with open("mainbank.json","r") as f:
         users = json.load(f)
     return users
 
+<<<<<<< Updated upstream
 env = os.environ.get("BOT_TOKEN")
 
+=======
+async def update_bank(user, change, mode = "wallet"):
+    users = await get_bank_data
+
+    users[str(user.id)][mode] += change
+
+    with open("mainbank.json", "w") as f:
+        json.dump(users,f)
+
+    bal = [users[str(user.id)]["wallet"],  users[str(user.id)]["bank"]]
+    return bal
+    
+
+env = os.environ.get("BOT_TOKEN")
+
+>>>>>>> Stashed changes
 client.run(env)
