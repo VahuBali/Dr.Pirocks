@@ -76,6 +76,7 @@ async def withdraw(ctx, change, amount = None):
 
     await ctx.send(f"You deposited {amount} coins!")
 
+print(withdraw)
 
 @client.command()
 async def deposit(ctx, change, amount = None):
@@ -102,6 +103,8 @@ async def deposit(ctx, change, amount = None):
     await update_bank(ctx.author,amount, "bank")
 
     await ctx.send(f"You withdrew {amount} coins!")
+
+print(deposit)
 
 @client.command()
 async def send(ctx,change, member:discord.Member, amount):
@@ -131,6 +134,8 @@ async def send(ctx,change, member:discord.Member, amount):
     await update_bank(ctx.author,amount, "bank")
 
     await ctx.send(f"You gave {amount} coins!")
+
+print(send)
 
 @client.command()
 async def slots(ctx,change, amount):
@@ -169,6 +174,8 @@ async def slots(ctx,change, amount):
         await update_bank(ctx.author,-3*amount)
         await ctx.send("Welcome to Poverty")
 
+print(slots)
+
 @client.command()
 async def rob(ctx, change, member:discord.Member):
     await open_account(ctx.author)
@@ -187,6 +194,7 @@ async def rob(ctx, change, member:discord.Member):
 
     await ctx.send(f"You stole {earnings} coins!")
     
+print(rob)
 
 async def open_account(user):
     with open("mainbank.json", "r") as f:
