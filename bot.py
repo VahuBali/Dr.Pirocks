@@ -54,9 +54,6 @@ async def beg(ctx):
 async def withdraw(ctx, change, amount = None):
     await open_account(ctx.author)
 
-    if amount == None:
-        await ctx.send("Please enter the amount")
-        return
 
     bal = await update_bank(ctx.author, change)
 
@@ -70,6 +67,10 @@ async def withdraw(ctx, change, amount = None):
         await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
         return
 
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
+
     await update_bank(ctx.author,amount)
     await update_bank(ctx.author,-1*amount, "bank")
 
@@ -80,9 +81,6 @@ async def withdraw(ctx, change, amount = None):
 async def deposit(ctx, change, amount = None):
     await open_account(ctx.author)
 
-    if amount == None:
-        await ctx.send("Please enter the amount")
-        return
 
     bal = await update_bank(ctx.author, change)
 
@@ -96,6 +94,10 @@ async def deposit(ctx, change, amount = None):
         await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
         return
 
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
+
     await update_bank(ctx.author,-1*amount)
     await update_bank(ctx.author,amount, "bank")
 
@@ -106,10 +108,6 @@ async def send(ctx,change, member:discord.Member, amount):
     await open_account(ctx.author)
     await open_account(member)
 
-
-    if amount == None:
-        await ctx.send("Please enter the amount")
-        return
 
     bal = await update_bank(ctx.author, change)
     if amount == "all":
@@ -125,6 +123,10 @@ async def send(ctx,change, member:discord.Member, amount):
         await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
         return
 
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
+
     await update_bank(ctx.author,-1*amount, "bank")
     await update_bank(ctx.author,amount, "bank")
 
@@ -134,9 +136,7 @@ async def send(ctx,change, member:discord.Member, amount):
 async def slots(ctx,change, amount):
     await open_account(ctx.author)
 
-    if amount == None:
-        await ctx.send("Please enter the amount")
-        return
+
 
     bal = await update_bank(ctx.author,change)
 
@@ -148,6 +148,10 @@ async def slots(ctx,change, amount):
 
     if amount<0:
         await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
+        return
+
+    if amount == None:
+        await ctx.send("Please enter the amount")
         return
 
     final = []
