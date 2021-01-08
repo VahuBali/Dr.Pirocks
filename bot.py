@@ -219,7 +219,7 @@ async def update_bank(user, change, mode = "wallet"):
 
 env = os.environ.get("BOT_TOKEN")
 
-<<<<<<< Updated upstream
+<<<<<< Updated upstream
  =======
 
  >>>>>>> Stashed changes
