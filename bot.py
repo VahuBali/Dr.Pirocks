@@ -218,6 +218,9 @@ async def update_bank(user, change, mode = "wallet"):
     
 
 env = os.environ.get("BOT_TOKEN")
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> e8ca95a5b00d7b1577751ef243a33374865ef4ec
 client.run(env)
