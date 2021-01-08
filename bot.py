@@ -26,8 +26,6 @@ async def balance(ctx):
     wallet_amt = users[str(user.id)]["wallet"]
     bank_amt = users[str(user.id)]["bank"]
 
-
-
     em = discord.Embed(title = f"{ctx.author.name}'s balance", color = discord.Color.red())
     em.add_field(name = "Wallet", value = wallet_amt)
     em.add_field(name = "Bank Balance", value = bank_amt)
@@ -54,7 +52,6 @@ async def beg(ctx):
 async def withdraw(ctx, change, amount = None):
     await open_account(ctx.author)
 
-
     bal = await update_bank(ctx.author, change)
 
     amount = int(amount)
@@ -76,12 +73,10 @@ async def withdraw(ctx, change, amount = None):
 
     await ctx.send(f"You deposited {amount} coins!")
 
-print(withdraw)
 
 @client.command()
 async def deposit(ctx, change, amount = None):
     await open_account(ctx.author)
-
 
     bal = await update_bank(ctx.author, change)
 
@@ -104,13 +99,11 @@ async def deposit(ctx, change, amount = None):
 
     await ctx.send(f"You withdrew {amount} coins!")
 
-print(deposit)
 
 @client.command()
 async def send(ctx,change, member:discord.Member, amount):
     await open_account(ctx.author)
     await open_account(member)
-
 
     bal = await update_bank(ctx.author, change)
     if amount == "all":
@@ -135,13 +128,10 @@ async def send(ctx,change, member:discord.Member, amount):
 
     await ctx.send(f"You gave {amount} coins!")
 
-print(send)
 
 @client.command()
 async def slots(ctx,change, amount):
     await open_account(ctx.author)
-
-
 
     bal = await update_bank(ctx.author,change)
 
@@ -174,7 +164,6 @@ async def slots(ctx,change, amount):
         await update_bank(ctx.author,-3*amount)
         await ctx.send("Welcome to Poverty")
 
-print(slots)
 
 @client.command()
 async def rob(ctx, change, member:discord.Member):
@@ -194,7 +183,6 @@ async def rob(ctx, change, member:discord.Member):
 
     await ctx.send(f"You stole {earnings} coins!")
     
-print(rob)
 
 async def open_account(user):
     with open("mainbank.json", "r") as f:
@@ -218,7 +206,8 @@ async def get_bank_data():
     return users
 
 async def update_bank(user, change, mode = "wallet"):
-    users = await get_bank_data
+    users = await get_bank_data()
+
 
     users[str(user.id)][mode] += change
 
