@@ -51,7 +51,7 @@ async def beg(ctx):
         json.dump(users,f)
 
 @client.command()
-async def withdraw(ctx, change, amount = None):
+async def withdraw(ctx, change, amount):
     await open_account(ctx.author)
 
     if amount == None:
@@ -70,14 +70,14 @@ async def withdraw(ctx, change, amount = None):
         await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
         return
 
-    await update_bank(ctx.author,-1*amount)
-    await update_bank(ctx.author,amount, "bank")
+    await update_bank(ctx.author,amount)
+    await update_bank(ctx.author,-1*amount, "bank")
 
     await ctx.send(f"You deposited {amount} coins!")
 
 
 @client.command()
-async def deposit(ctx, change, amount = None):
+async def deposit(ctx, change, amount):
     await open_account(ctx.author)
 
     if amount == None:
@@ -102,7 +102,7 @@ async def deposit(ctx, change, amount = None):
     await ctx.send(f"You withdrew {amount} coins!")
 
 @client.command()
-async def send(ctx,change, member:discord.Member, amount = None):
+async def send(ctx,change, member:discord.Member, amount):
     await open_account(ctx.author)
     await open_account(member)
 
@@ -131,7 +131,7 @@ async def send(ctx,change, member:discord.Member, amount = None):
     await ctx.send(f"You gave {amount} coins!")
 
 @client.command()
-async def slots(ctx,change, amount = None):
+async def slots(ctx,change, amount):
     await open_account(ctx.author)
 
     if amount == None:
@@ -218,4 +218,10 @@ async def update_bank(user, change, mode = "wallet"):
     
 
 env = os.environ.get("BOT_TOKEN")
+
+<<<<<<< Updated upstream
+ =======
+
+ >>>>>>> Stashed changes
+
 client.run(env)
