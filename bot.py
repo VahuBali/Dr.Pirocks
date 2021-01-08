@@ -51,7 +51,7 @@ async def beg(ctx):
         json.dump(users,f)
 
 @client.command()
-async def withdraw(ctx, change, amount):
+async def withdraw(ctx, change, amount = None):
     await open_account(ctx.author)
 
     if amount == None:
@@ -77,7 +77,7 @@ async def withdraw(ctx, change, amount):
 
 
 @client.command()
-async def deposit(ctx, change, amount):
+async def deposit(ctx, change, amount = None):
     await open_account(ctx.author)
 
     if amount == None:
@@ -219,9 +219,5 @@ async def update_bank(user, change, mode = "wallet"):
 
 env = os.environ.get("BOT_TOKEN")
 
-<<<<<< Updated upstream
- =======
-
- >>>>>>> Stashed changes
 
 client.run(env)
