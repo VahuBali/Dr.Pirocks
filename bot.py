@@ -26,6 +26,8 @@ async def balance(ctx):
     wallet_amt = users[str(user.id)]["wallet"]
     bank_amt = users[str(user.id)]["bank"]
 
+
+
     em = discord.Embed(title = f"{ctx.author.name}'s balance", color = discord.Color.red())
     em.add_field(name = "Wallet", value = wallet_amt)
     em.add_field(name = "Bank Balance", value = bank_amt)
@@ -52,20 +54,21 @@ async def beg(ctx):
 async def withdraw(ctx, change, amount = None):
     await open_account(ctx.author)
 
+
     bal = await update_bank(ctx.author, change)
 
     amount = int(amount)
+
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
 
     if amount>bal[1]:
         await ctx.send("You don't have enough money")
         return
 
     if amount<0:
-        await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
-        return
-
-    if amount == None:
-        await ctx.send("Please enter the amount")
+        await ctx.send("YOU CAN'T  WITHDRAW A NEGATIVE AMOUNT")
         return
 
     await update_bank(ctx.author,amount)
@@ -78,9 +81,15 @@ async def withdraw(ctx, change, amount = None):
 async def deposit(ctx, change, amount = None):
     await open_account(ctx.author)
 
+
+
     bal = await update_bank(ctx.author, change)
 
     amount = int(amount)
+
+    if amount == None:
+        await ctx.send("Please enter the amount")
+        return
 
     if amount>bal[0]:
         await ctx.send("")
@@ -90,20 +99,18 @@ async def deposit(ctx, change, amount = None):
         await ctx.send("YOU CAN'T WITHDRAW A NEGATIVE AMOUNT")
         return
 
-    if amount == None:
-        await ctx.send("Please enter the amount")
-        return
-
     await update_bank(ctx.author,-1*amount)
     await update_bank(ctx.author,amount, "bank")
 
     await ctx.send(f"You withdrew {amount} coins!")
 
-
 @client.command()
 async def send(ctx,change, member:discord.Member, amount):
     await open_account(ctx.author)
     await open_account(member)
+
+
+
 
     bal = await update_bank(ctx.author, change)
     if amount == "all":
@@ -128,10 +135,11 @@ async def send(ctx,change, member:discord.Member, amount):
 
     await ctx.send(f"You gave {amount} coins!")
 
-
 @client.command()
 async def slots(ctx,change, amount):
     await open_account(ctx.author)
+
+
 
     bal = await update_bank(ctx.author,change)
 
@@ -163,7 +171,6 @@ async def slots(ctx,change, amount):
     else:
         await update_bank(ctx.author,-3*amount)
         await ctx.send("Welcome to Poverty")
-
 
 @client.command()
 async def rob(ctx, change, member:discord.Member):
@@ -208,8 +215,7 @@ async def get_bank_data():
 async def update_bank(user, change = 0, mode = "wallet"):
     users = await get_bank_data()
 
-
-    users[str(user.id)][mode] += change
+    users[str(user.id)][mode] =  users[str(user.id)][mode]+change
 
     with open("mainbank.json", "w") as f:
         json.dump(users,f)
@@ -219,5 +225,6 @@ async def update_bank(user, change = 0, mode = "wallet"):
     
 
 env = os.environ.get("BOT_TOKEN")
+
 
 client.run(env)
