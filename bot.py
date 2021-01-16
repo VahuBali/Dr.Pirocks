@@ -64,7 +64,7 @@ async def beg(ctx):
         json.dump(users,f)
 
 @client.command(pass_context=True)
-async def with(ctx,amount = None):
+async def withdraw(ctx,amount = None):
     await open_account(ctx.author)
     if amount == None:
         await ctx.send("**Please enter the amount**")
