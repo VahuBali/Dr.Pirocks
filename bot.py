@@ -64,7 +64,7 @@ async def beg(ctx):
         json.dump(users,f)
 
 @client.command(pass_context=True)
-async def withdraw(ctx,amount = None):
+async def with(ctx,amount = None):
     await open_account(ctx.author)
     if amount == None:
         await ctx.send("**Please enter the amount**")
@@ -111,7 +111,7 @@ async def dep(ctx,amount = None):
 
 
 @client.command(pass_context=True)
-async def pay(ctx,member: discord.Member, amount = None):
+async def send(ctx,member: discord.Member, amount = None):
     await open_account(ctx.author)
     await open_account(member)
     if amount == None:
