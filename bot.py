@@ -215,7 +215,7 @@ async def get_bank_data():
 async def update_bank(user, change = 0, mode = "wallet"):
     users = await get_bank_data()
 
-    users[str(user.id)][mode] =  users[str(user.id)][mode]+change
+    int(users[str(user.id)][mode]) += change
 
     with open("mainbank.json", "w") as f:
         json.dump(users,f)
