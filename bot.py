@@ -13,8 +13,6 @@ os.chdir("/app")
 client = commands.Bot(command_prefix = "vb ")
 
 
-client.remove_command('help')
-
 @client.event
 async def on_ready():
     await client.change_presence(activity=discord.Game(name="#help"))
@@ -23,6 +21,20 @@ async def on_ready():
 @client.command()
 async def hello(ctx):
     await ctx.send("hey")
+
+@client.command()
+async def youtube(ctx):
+    await ctx.send("Vasu Bansal's YouTube channel can be found at https://www.youtube.com/channel/UCCzfHZSA8nEnx_QTFlq6mHA")
+
+@client.command()
+async def podcast(ctx):
+    await ctx.send("Vasu Bansal's Podcast can be found at https://redcircle.com/talk-tech-teen-tech or on Spotify, Apple Podcasts, or anywhere you listen to your podcasts!")
+
+
+
+@client.command()
+async def inv(ctx):
+    await ctx.send("https://discord.com/api/oauth2/authorize?client_id=788895628511281182&permissions=8&scope=bot")
 
 @client.command(pass_context=True)
 async def bal(ctx):
@@ -56,7 +68,7 @@ async def beg(ctx):
 
     earnings = random.randrange(101)
 
-    await ctx.send(f"**Mochi gave you {earnings} coins!!**")
+    await ctx.send(f"**Dr.Pirocks gave you {earnings} moolah now use this money to do something good for the planet!!**")
 
     users[str(user.id)]["wallet"] += earnings
 
@@ -84,7 +96,7 @@ async def withdraw(ctx,amount = None):
     await update_bank(ctx.author,amount)
     await update_bank(ctx.author,-1*amount,"bank")
 
-    await ctx.send(f"**you withdrew {amount} coins!**")
+    await ctx.send(f"**you withdrew {amount} moolah!**")
 
 @client.command(pass_context=True)
 async def dep(ctx,amount = None):
@@ -107,11 +119,11 @@ async def dep(ctx,amount = None):
     await update_bank(ctx.author,-1*amount)
     await update_bank(ctx.author,amount,"bank")
 
-    await ctx.send(f"**you deposited {amount} coins!**")
+    await ctx.send(f"**you deposited {amount} moolah!**")
 
 
 @client.command(pass_context=True)
-async def send(ctx,member: discord.Member, amount = None):
+async def pay(ctx,member: discord.Member, amount = None):
     await open_account(ctx.author)
     await open_account(member)
     if amount == None:
@@ -138,7 +150,7 @@ async def send(ctx,member: discord.Member, amount = None):
     await update_bank(ctx.author,-1*amount,"bank")
     await update_bank(member,amount,"bank")
 
-    await ctx.send(f"**you paid {amount} coins!**")
+    await ctx.send(f"**you paid {amount} moolah!**")
 
 @client.command(pass_context=True)
 async def rob(ctx,member: discord.Member):
@@ -159,7 +171,7 @@ async def rob(ctx,member: discord.Member):
     await update_bank(ctx.author,earnings)
     await update_bank(member,-1*earnings)
 
-    await ctx.send(f"you robbed and got {earnings} coins!")
+    await ctx.send(f"you robbed and got {earnings} moolah!")
 
 
 @client.command(pass_context=True)
