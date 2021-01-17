@@ -4,13 +4,6 @@ import json
 import os
 import math
 import random
-import praw
-
-reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
-                     client_secret = "5kVlWhM_E7Jm2ZijsOmSCJyg79p6lg",
-                     username = "Vahu-Bali",
-                     password = "Vasu@5950",
-                     user_agent = "pythonmemepraw")
 
 os.chdir("/app")
 
@@ -28,28 +21,6 @@ mainshop = [{"name":"Watch", "price": 1000, "description": "Check Time"},
 async def on_ready():
     await client.change_presence(activity=discord.Game(name="#help"))
     print("Bot is ready")
-
-
-@client.command()
-async def meme(ctx):
-
-    subreddit = reddit.subreddit("memes")
-    all_subs = []
-    top = subreddit.top(limit = 50)
-
-    for submission in top:
-        all_subs.append(submission)
-
-    random_sub = random.choice(all_subs)
-
-    name = random_sub.title
-    url = random_sub.url
-
-    em = discord.Embed(title = name)
-
-    em.set_image(url = url)
-
-    await ctx.send(embed = em)
 
 
 @client.command()
