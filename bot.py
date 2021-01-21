@@ -59,7 +59,6 @@ async def ch_pr():
         await asyncio.sleep(10)
 
 client.loop.create_task(ch_pr())
-client.run("BOT_TOKEN")
 
 @client.command()
 async def meme(ctx):
