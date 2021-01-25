@@ -36,7 +36,7 @@ reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
 
 os.chdir("/app")
 
-client = commands.Bot(command_prefix="vb ", intents=intent)
+client = commands.Bot(command_prefix="vb ")
 
 client.remove_command("help")
 
@@ -77,6 +77,9 @@ async def ch_pr():
 
 
 client.loop.create_task(ch_pr())
+discord.Intents.all()
+
+
 
 @client.group(invoke_without_command=True)
 async def help(ctx):
@@ -1359,6 +1362,8 @@ async def on_message(message):
             string = message.content
             mod_message = string[index:]
             await member_object.send("[" + message.author.display_name + "]" + mod_message)
+
+    await client.process_commands(message)
 
 @commands.command()
 async def randgrame(self, ctx):
