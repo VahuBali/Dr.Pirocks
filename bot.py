@@ -14,10 +14,13 @@ from enum import Enum
 import typing as t
 import re
 import wavelink
+from discord import Intents
 
 
 from PIL import Image
 from io import BytesIO
+
+intent = Intents.all()
 
 f = open("rules2.txt","r")
 rules = f.readlines()
@@ -33,7 +36,7 @@ reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
 
 os.chdir("/app")
 
-client = commands.Bot(command_prefix="vb ")
+client = commands.Bot(command_prefix="vb ", Intents=intent)
 
 client.remove_command("help")
 
