@@ -98,6 +98,8 @@ async def on_message2(msg):
 
     await client.process_commands(message)
 
+    await client.process_commands(msg)
+
 @client.command(aliasess=['rules'])
 async def rule(ctx,*,number):
     await ctx.send(rules[int(number)-1])
