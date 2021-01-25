@@ -7,9 +7,22 @@ import random
 import praw
 import datetime
 import asyncio
+import youtube_dl
+from discord.ext.commands import command, cooldown
+from discord.ext.commands import Cog, BucketType
+from enum import Enum
+import typing as t
+import re
+import wavelink
+
 
 from PIL import Image
 from io import BytesIO
+
+f = open("rules2.txt","r")
+rules = f.readlines()
+
+filtered_words = ["dick", "fuck", "bitch", "ass", "shit", "motherfucker"]
 
 
 reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
@@ -21,8 +34,68 @@ reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
 os.chdir("/app")
 
 
-client = commands.Bot(command_prefix = "vb ")
+def get_prefix(client,message):
 
+    with open("prefixes2.json", "r") as f:
+        prefixes = json.load(f)
+
+    return prefixes[str(message.guild.id)]
+
+client = commands.Bot(command_prefix = get_prefix)
+
+
+
+@client.event
+async def on_guild_join(guild):
+
+
+    with open("prefixes2.json", "r") as f:
+        prefixes = json.load(f)
+
+    prefixes[str(guild.id)] = ">"
+
+    with open("prefixes2.json", "w") as f:
+        json.dump(prefixes,f)
+
+
+
+
+@client.command()
+@commands.has_permissions(administrator = True)
+async def changeprefix(ctx, prefix):
+
+    with open("prefixes2.json", "r") as f:
+        prefixes = json.load(f)
+
+    prefixes[str(ctx.guild.id)] = prefix
+
+    with open("prefixes2.json", "w") as f:
+        json.dump(prefixes,f)    
+
+    await ctx.send(f"The prefix was changed to {prefix}")
+
+
+
+@client.event
+async def on_message3(msg):
+
+    try:
+        if msg.mentions[0] == client.user:
+
+            with open("prefixes2.json", "r") as f:
+                prefixes = json.load(f)
+
+            pre = prefixes[str(msg.guild.id)] 
+
+            await msg.channel.send(f"My prefix for this server is {pre}")
+
+    except:
+        pass
+
+    await client.process_commands(msg)
+
+client = commands.Bot(command_prefix = get_prefix)
+client.remove_command("help")
 
 mainshop = [{"name":"Watch", "price": 1000, "description": "Check Time"},
             {"name":"Laptop", "price": 3000, "description": "Google Things"},
@@ -59,6 +132,42 @@ async def ch_pr():
         await asyncio.sleep(10)
 
 client.loop.create_task(ch_pr())
+client.run()
+
+@client.group(invoke_without_command=True)
+async def help(ctx):
+    em = discord.Embed(title = "Help", description = "Use **vb help** <command> for extended information on a command.",color = ctx.author.colour)
+
+    em.add_field(name = "Moderation", value = "kick,ban,mute,clear")
+    em.add_field(name = "Fun", value = "trash, meme, cleanmeme")
+    em.add_field(name = "Economy", value = "bal, beg, withdraw, dep, pay, slots, rob, shop, bag")
+
+    await ctx.send(embed = em)
+
+@client.event
+async def on_message2(msg):
+    for word in filtered_words:
+        if word in msg.content:
+            await msg.delete()
+
+    await client.process_commands(msg)
+
+@client.command(aliasess=['rules'])
+async def rule(ctx,*,number):
+    await ctx.send(rules[int(number)-1])
+
+
+
+@client.command(aliases=['c'])
+@commands.has_permissions(manage_messages = True)
+async def clear(ctx,amount=2):
+    await ctx.channel.purge(limit = amount)
+
+@client.command(aliases=['c'])
+@commands.has_permissions(manage_messages = True)
+async def kick(ctx,member : discord.Member,*,reason= "No reason provided"):
+    await member.send("You have been kicked from the server, Because:"+reason)
+    await member.kick(reason=reason)
 
 @client.command()
 async def meme(ctx):
@@ -81,6 +190,26 @@ async def meme(ctx):
 
     await ctx.send(embed = em)
 
+@client.command()
+async def cleanmeme(ctx):
+
+    subreddit = reddit.subreddit("cleanmemes")
+    all_subs = []
+    top = subreddit.top(limit = 50)
+
+    for submission in top:
+        all_subs.append(submission)
+
+    random_sub = random.choice(all_subs)
+
+    name = random_sub.title
+    url = random_sub.url
+
+    em = discord.Embed(title = name)
+
+    em.set_image(url = url)
+
+    await ctx.send(embed = em)
 
 @client.command()
 async def hello(ctx):
@@ -102,6 +231,42 @@ async def joindis(ctx):
 async def inv(ctx):
     await ctx.send("Get the Admins to click this link to add this bot https://discord.com/api/oauth2/authorize?client_id=788895628511281182&permissions=8&scope=bot")
 
+
+@client.command(aliases=['b'])
+@commands.has_permissions(ban_members = True)
+async def ban(ctx,member : discord.Member, *, reason = "No reason provided"):
+    await ctx.send(member.name + " has been banned from the server")
+    await member.ban(reason=reason)
+
+@client.command(aliases=['ub'])
+@commands.has_permissions(ban_members = True)
+async def unban(ctx, *,member):
+    banned_users = await ctx.guild.bans()
+    member_name, member_disc = member.split('#')
+
+    for banned_entry in banned_users:
+        user = banned_entry.users
+
+        if(user.name, user.discrimator)==(member_name, member_disc):
+
+            await ctx.guild.unban(user)
+            await ctx.send(member_name +" has been unbanned!")
+            return
+    
+    await ctx.send(member+" was not found")
+
+
+@client.command(aliases=['ub'])
+@commands.has_permissions(kick_members = True)
+async def mute(ctx,member : discord.Member):
+    muted_role = ctx.guild.get_role(799700181913698371)
+
+    await member.add_roles(muted_role)
+
+    await ctx.send(member.mention + " has been muted")
+
+
+
 @client.command(pass_context=True)
 async def bal(ctx, member: discord.Member = None):
     await open_account(ctx.author)
@@ -122,6 +287,7 @@ async def bal(ctx, member: discord.Member = None):
     await ctx.send(embed = embed)
 
 @client.command(pass_context=True)
+@cooldown(1, 15, BucketType.user)
 async def beg(ctx):
     await open_account(ctx.author)
 
@@ -625,10 +791,644 @@ async def trash(ctx, user: discord.Member = None):
 
     await ctx.send (file = discord.File("profile.jpg"))
 
+@client.command()
+async def imbetter(ctx, user: discord.Member = None):
+
+    myself = ctx.author
+
+    if user == None:
+        user = ctx.author()
+
+    imbetter = Image.open("DrakeMeme.jpg")
+
+    asset = user.avatar_url_as(size = 128)
+
+    data = BytesIO(await asset.read())
+    pfp = Image.open(data)
+
+    pfp = pfp.resize((430,430))
+    imbetter.paste(pfp, (659, 79))
+
+    asset2 = myself.avatar_url_as(size = 128)
+
+    data2 = BytesIO(await asset.read())
+    pfp2 = Image.open(data)
+
+    pfp2 = pfp2.resize((435,435))
+    imbetter.paste(pfp2, (662,683))
+
+    imbetter.save("profile.jpg")
+
+    await ctx.send (file = discord.File("profile.jpg"))
+
+
+URL_REGEX = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+OPTIONS = {
+    "1️⃣": 0,
+    "2⃣": 1,
+    "3⃣": 2,
+    "4⃣": 3,
+    "5⃣": 4,
+}
+
+
+class AlreadyConnectedToChannel(commands.CommandError):
+    pass
+
+
+class NoVoiceChannel(commands.CommandError):
+    pass
+
+
+class QueueIsEmpty(commands.CommandError):
+    pass
+
+
+class NoTracksFound(commands.CommandError):
+    pass
+
+
+class PlayerIsAlreadyPaused(commands.CommandError):
+    pass
+
+
+class NoMoreTracks(commands.CommandError):
+    pass
+
+
+class NoPreviousTracks(commands.CommandError):
+    pass
+
+
+class InvalidRepeatMode(commands.CommandError):
+    pass
+
+
+class RepeatMode(Enum):
+    NONE = 0
+    ONE = 1
+    ALL = 2
+
+
+class Queue:
+    def __init__(self):
+        self._queue = []
+        self.position = 0
+        self.repeat_mode = RepeatMode.NONE
+
+    @property
+    def is_empty(self):
+        return not self._queue
+
+    @property
+    def current_track(self):
+        if not self._queue:
+            raise QueueIsEmpty
+
+        if self.position <= len(self._queue) - 1:
+            return self._queue[self.position]
+
+    @property
+    def upcoming(self):
+        if not self._queue:
+            raise QueueIsEmpty
+
+        return self._queue[self.position + 1:]
+
+    @property
+    def history(self):
+        if not self._queue:
+            raise QueueIsEmpty
+
+        return self._queue[:self.position]
+
+    @property
+    def length(self):
+        return len(self._queue)
+
+    def add(self, *args):
+        self._queue.extend(args)
+
+    def get_next_track(self):
+        if not self._queue:
+            raise QueueIsEmpty
+
+        self.position += 1
+
+        if self.position < 0:
+            return None
+        elif self.position > len(self._queue) - 1:
+            if self.repeat_mode == RepeatMode.ALL:
+                self.position = 0
+            else:
+                return None
+
+        return self._queue[self.position]
+
+    def shuffle(self):
+        if not self._queue:
+            raise QueueIsEmpty
+
+        upcoming = self.upcoming
+        random.shuffle(upcoming)
+        self._queue = self._queue[:self.position + 1]
+        self._queue.extend(upcoming)
+
+    def set_repeat_mode(self, mode):
+        if mode == "none":
+            self.repeat_mode = RepeatMode.NONE
+        elif mode == "1":
+            self.repeat_mode = RepeatMode.ONE
+        elif mode == "all":
+            self.repeat_mode = RepeatMode.ALL
+
+    def empty(self):
+        self._queue.clear()
+        self.position = 0
+
+
+class Player(wavelink.Player):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.queue = Queue()
+
+    async def connect(self, ctx, channel=None):
+        if self.is_connected:
+            raise AlreadyConnectedToChannel
+
+        if (channel := getattr(ctx.author.voice, "channel", channel)) is None:
+            raise NoVoiceChannel
+
+        await super().connect(channel.id)
+        return channel
+
+    async def teardown(self):
+        try:
+            await self.destroy()
+        except KeyError:
+            pass
+
+    async def add_tracks(self, ctx, tracks):
+        if not tracks:
+            raise NoTracksFound
+
+        if isinstance(tracks, wavelink.TrackPlaylist):
+            self.queue.add(*tracks.tracks)
+        elif len(tracks) == 1:
+            self.queue.add(tracks[0])
+            await ctx.send(f"Added {tracks[0].title} to the queue.")
+        else:
+            if (track := await self.choose_track(ctx, tracks)) is not None:
+                self.queue.add(track)
+                await ctx.send(f"Added {track.title} to the queue.")
+
+        if not self.is_playing and not self.queue.is_empty:
+            await self.start_playback()
+
+    async def choose_track(self, ctx, tracks):
+        def _check(r, u):
+            return (
+                r.emoji in OPTIONS.keys()
+                and u == ctx.author
+                and r.message.id == msg.id
+            )
+
+        embed = discord.Embed(
+            title="Choose a song",
+            description=(
+                "\n".join(
+                    f"**{i+1}.** {t.title} ({t.length//60000}:{str(t.length%60).zfill(2)})"
+                    for i, t in enumerate(tracks[:5])
+                )
+            ),
+            colour=ctx.author.colour,
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.set_author(name="Query Results")
+        embed.set_footer(text=f"Invoked by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
+
+        msg = await ctx.send(embed=embed)
+        for emoji in list(OPTIONS.keys())[:min(len(tracks), len(OPTIONS))]:
+            await msg.add_reaction(emoji)
+
+        try:
+            reaction, _ = await self.bot.wait_for("reaction_add", timeout=60.0, check=_check)
+        except asyncio.TimeoutError:
+            await msg.delete()
+            await ctx.message.delete()
+        else:
+            await msg.delete()
+            return tracks[OPTIONS[reaction.emoji]]
+
+    async def start_playback(self):
+        await self.play(self.queue.current_track)
+
+    async def advance(self):
+        try:
+            if (track := self.queue.get_next_track()) is not None:
+                await self.play(track)
+        except QueueIsEmpty:
+            pass
+
+    async def repeat_track(self):
+        await self.play(self.queue.current_track)
+
+
+class Music(commands.Cog, wavelink.WavelinkMixin):
+    def __init__(self, bot):
+        self.bot = bot
+        self.wavelink = wavelink.Client(bot=bot)
+        self.bot.loop.create_task(self.start_nodes())
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        if not member.bot and after.channel is None:
+            if not [m for m in before.channel.members if not m.bot]:
+                await self.get_player(member.guild).teardown()
+
+    @wavelink.WavelinkMixin.listener()
+    async def on_node_ready(self, node):
+        print(f" Wavelink node `{node.identifier}` ready.")
+
+    @wavelink.WavelinkMixin.listener("on_track_stuck")
+    @wavelink.WavelinkMixin.listener("on_track_end")
+    @wavelink.WavelinkMixin.listener("on_track_exception")
+    async def on_player_stop(self, node, payload):
+        if payload.player.queue.repeat_mode == RepeatMode.ONE:
+            await payload.player.repeat_track()
+        else:
+            await payload.player.advance()
+
+    async def cog_check(self, ctx):
+        if isinstance(ctx.channel, discord.DMChannel):
+            await ctx.send("Music commands are not available in DMs.")
+            return False
+
+        return True
+
+    async def start_nodes(self):
+        await self.bot.wait_until_ready()
+
+        nodes = {
+            "MAIN": {
+                "host": "127.0.0.1",
+                "port": 2333,
+                "rest_uri": "http://127.0.0.1:2333",
+                "password": "youshallnotpass",
+                "identifier": "MAIN",
+                "region": "europe",
+            }
+        }
+
+        for node in nodes.values():
+            await self.wavelink.initiate_node(**node)
+
+    def get_player(self, obj):
+        if isinstance(obj, commands.Context):
+            return self.wavelink.get_player(obj.guild.id, cls=Player, context=obj)
+        elif isinstance(obj, discord.Guild):
+            return self.wavelink.get_player(obj.id, cls=Player)
+
+    @commands.command(name="connect", aliases=["join"])
+    async def connect_command(self, ctx, *, channel: t.Optional[discord.VoiceChannel]):
+        player = self.get_player(ctx)
+        channel = await player.connect(ctx, channel)
+        await ctx.send(f"Connected to {channel.name}.")
+
+    @connect_command.error
+    async def connect_command_error(self, ctx, exc):
+        if isinstance(exc, AlreadyConnectedToChannel):
+            await ctx.send("Already connected to a voice channel.")
+        elif isinstance(exc, NoVoiceChannel):
+            await ctx.send("No suitable voice channel was provided.")
+
+    @commands.command(name="disconnect", aliases=["leave"])
+    async def disconnect_command(self, ctx):
+        player = self.get_player(ctx)
+        await player.teardown()
+        await ctx.send("Disconnect.")
+
+    @commands.command(name="play")
+    async def play_command(self, ctx, *, query: t.Optional[str]):
+        player = self.get_player(ctx)
+
+        if not player.is_connected:
+            await player.connect(ctx)
+
+        if query is None:
+            if player.queue.is_empty:
+                raise QueueIsEmpty
+
+            await player.set_pause(False)
+            await ctx.send("Playback resumed.")
+
+        else:
+            query = query.strip("<>")
+            if not re.match(URL_REGEX, query):
+                query = f"ytsearch:{query}"
+
+            await player.add_tracks(ctx, await self.wavelink.get_tracks(query))
+
+    @play_command.error
+    async def play_command_error(self, ctx, exc):
+        if isinstance(exc, QueueIsEmpty):
+            await ctx.send("No songs to play as the queue is empty.")
+        elif isinstance(exc, NoVoiceChannel):
+            await ctx.send("No suitable voice channel was provided.")
+
+    @commands.command(name="pause")
+    async def pause_command(self, ctx):
+        player = self.get_player(ctx)
+
+        if player.is_paused:
+            raise PlayerIsAlreadyPaused
+
+        await player.set_pause(True)
+        await ctx.send("Playback paused.")
+
+    @pause_command.error
+    async def pause_command_error(self, ctx, exc):
+        if isinstance(exc, PlayerIsAlreadyPaused):
+            await ctx.send("Already paused.")
+
+    @commands.command(name="stop")
+    async def stop_command(self, ctx):
+        player = self.get_player(ctx)
+        player.queue.empty()
+        await player.stop()
+        await ctx.send("Playback stopped.")
+
+    @commands.command(name="next", aliases=["skip"])
+    async def next_command(self, ctx):
+        player = self.get_player(ctx)
+
+        if not player.queue.upcoming:
+            raise NoMoreTracks
+
+        await player.stop()
+        await ctx.send("Playing next track in queue.")
+
+    @next_command.error
+    async def next_command_error(self, ctx, exc):
+        if isinstance(exc, QueueIsEmpty):
+            await ctx.send("This could not be executed as the queue is currently empty.")
+        elif isinstance(exc, NoMoreTracks):
+            await ctx.send("There are no more tracks in the queue.")
+
+    @commands.command(name="previous")
+    async def previous_command(self, ctx):
+        player = self.get_player(ctx)
+
+        if not player.queue.history:
+            raise NoPreviousTracks
+
+        player.queue.position -= 2
+        await player.stop()
+        await ctx.send("Playing previous track in queue.")
+
+    @previous_command.error
+    async def previous_command_error(self, ctx, exc):
+        if isinstance(exc, QueueIsEmpty):
+            await ctx.send("This could not be executed as the queue is currently empty.")
+        elif isinstance(exc, NoPreviousTracks):
+            await ctx.send("There are no previous tracks in the queue.")
+
+    @commands.command(name="shuffle")
+    async def shuffle_command(self, ctx):
+        player = self.get_player(ctx)
+        player.queue.shuffle()
+        await ctx.send("Queue shuffled.")
+
+    @shuffle_command.error
+    async def shuffle_command_error(self, ctx, exc):
+        if isinstance(exc, QueueIsEmpty):
+            await ctx.send("The queue could not be shuffled as it is currently empty.")
+
+    @commands.command(name="repeat")
+    async def repeat_command(self, ctx, mode: str):
+        if mode not in ("none", "1", "all"):
+            raise InvalidRepeatMode
+
+        player = self.get_player(ctx)
+        player.queue.set_repeat_mode(mode)
+        await ctx.send(f"The repeat mode has been set to {mode}.")
+
+    @commands.command(name="queue")
+    async def queue_command(self, ctx, show: t.Optional[int] = 10):
+        player = self.get_player(ctx)
+
+        if player.queue.is_empty:
+            raise QueueIsEmpty
+
+        embed = discord.Embed(
+            title="Queue",
+            description=f"Showing up to next {show} tracks",
+            colour=ctx.author.colour,
+            timestamp=datetime.datetime.utcnow()
+        )
+        embed.set_author(name="Query Results")
+        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
+        embed.add_field(
+            name="Currently playing",
+            value=getattr(player.queue.current_track, "title", "No tracks currently playing."),
+            inline=False
+        )
+        if upcoming := player.queue.upcoming:
+            embed.add_field(
+                name="Next up",
+                value="\n".join(t.title for t in upcoming[:show]),
+                inline=False
+            )
+
+        msg = await ctx.send(embed=embed)
+
+    @queue_command.error
+    async def queue_command_error(self, ctx, exc):
+        if isinstance(exc, QueueIsEmpty):
+            await ctx.send("The queue is currently empty.")
+
+
+def setup(bot):
+    bot.add_cog(Music(bot))
 
 
 
+player1 = ""
+player2 = ""
+turn = ""
+gameOver = True
 
+board = []
+
+winningConditions = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+]
+
+@client.command()
+async def tictactoe(ctx, p1: discord.Member, p2: discord.Member):
+    global count
+    global player1
+    global player2
+    global turn
+    global gameOver
+
+    if gameOver:
+        global board
+        board = [":white_large_square:", ":white_large_square:", ":white_large_square:",
+                 ":white_large_square:", ":white_large_square:", ":white_large_square:",
+                 ":white_large_square:", ":white_large_square:", ":white_large_square:"]
+        turn = ""
+        gameOver = False
+        count = 0
+
+        player1 = p1
+        player2 = p2
+
+        # print the board
+        line = ""
+        for x in range(len(board)):
+            if x == 2 or x == 5 or x == 8:
+                line += " " + board[x]
+                await ctx.send(line)
+                line = ""
+            else:
+                line += " " + board[x]
+
+        # determine who goes first
+        num = random.randint(1, 2)
+        if num == 1:
+            turn = player1
+            await ctx.send("It is <@" + str(player1.id) + ">'s turn.")
+        elif num == 2:
+            turn = player2
+            await ctx.send("It is <@" + str(player2.id) + ">'s turn.")
+    else:
+        await ctx.send("A game is already in progress! Finish it before starting a new one.")
+
+@client.command()
+async def place(ctx, pos: int):
+    global turn
+    global player1
+    global player2
+    global board
+    global count
+    global gameOver
+
+    if not gameOver:
+        mark = ""
+        if turn == ctx.author:
+            if turn == player1:
+                mark = ":regional_indicator_x:"
+            elif turn == player2:
+                mark = ":o2:"
+            if 0 < pos < 10 and board[pos - 1] == ":white_large_square:" :
+                board[pos - 1] = mark
+                count += 1
+
+                # print the board
+                line = ""
+                for x in range(len(board)):
+                    if x == 2 or x == 5 or x == 8:
+                        line += " " + board[x]
+                        await ctx.send(line)
+                        line = ""
+                    else:
+                        line += " " + board[x]
+
+                checkWinner(winningConditions, mark)
+                print(count)
+                if gameOver == True:
+                    await ctx.send(mark + " wins!")
+                elif count >= 9:
+                    gameOver = True
+                    await ctx.send("It's a tie!")
+
+                # switch turns
+                if turn == player1:
+                    turn = player2
+                elif turn == player2:
+                    turn = player1
+            else:
+                await ctx.send("Be sure to choose an integer between 1 and 9 (inclusive) and an unmarked tile.")
+        else:
+            await ctx.send("It is not your turn.")
+    else:
+        await ctx.send("Please start a new game using the !tictactoe command.")
+
+
+def checkWinner(winningConditions, mark):
+    global game0ver
+    for condition in winningConditions:
+        if board[condition[0]] == mark and board[condition[1]] == mark and board[condition[2]] == mark:
+            gameOver = True
+
+@tictactoe.error
+async def tictactoe_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Please mention 2 players for this command.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Please make sure to mention/ping players (ie. <@688534433879556134>).")
+
+@place.error
+async def place_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Please enter a position you would like to mark.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Please make sure to enter an integer.")
+
+
+@client.event
+async def on_message(message):
+    empty_array = []
+    modmail_channel = discord.utils.get(client.get_all_channels(), name="mod-mail")
+
+    if message.author == client.user:
+        return
+    if str(message.channel.type) == "private":
+        if message.attachments != empty_array:
+            files = message.attachments
+            await modmail_channel.send("[" + message.author.display_name + "]")
+
+            for file in files:
+                await modmail_channel.send(file.url)
+        else:
+            await modmail_channel.send("[" + message.author.display_name + "] " + message.content)
+
+    elif str(message.channel) == "mod-mail" and message.content.startswith("<"):
+        member_object = message.mentions[0]
+        if message.attachments != empty_array:
+            files = message.attachments
+            await member_object.send("[" + message.author.display_name + "]")
+
+            for file in files:
+                await member_object.send(file.url)
+        else:
+            index = message.content.index(" ")
+            string = message.content
+            mod_message = string[index:]
+            await member_object.send("[" + message.author.display_name + "]" + mod_message)
+
+@commands.command()
+async def randgrame(self, ctx):
+    number = random.randint(0, 100)
+    for i in range(0, 5):
+        await ctx.send('guess')
+        response = await self.bot.wait_for('message')
+        guess = int(response.content)
+        if guess > number:
+            await ctx.send('bigger')
+        elif guess < number:
+            await ctx.send('smaller')
+        else:
+            await ctx.send('true')
 
 
 async def open_account(user):
