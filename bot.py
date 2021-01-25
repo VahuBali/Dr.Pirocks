@@ -1361,6 +1361,7 @@ async def on_message(message):
             string = message.content
             mod_message = string[index:]
             await member_object.send("[" + message.author.display_name + "]" + mod_message)
+    client.process_commands(message)
 
 @commands.command()
 async def randgrame(self, ctx):
