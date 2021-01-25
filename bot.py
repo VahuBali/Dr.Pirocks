@@ -15,6 +15,8 @@ import typing as t
 import re
 import wavelink
 from discord import Intents
+from discord.ext import commands, tasks
+from discord.voice_client import VoiceClient
 
 
 from PIL import Image
@@ -158,9 +160,6 @@ async def cleanmeme(ctx):
 
     await ctx.send(embed = em)
 
-@client.command()
-async def hello(ctx):
-    await ctx.send("hey")
 
 @client.command()
 async def youtube(ctx):
@@ -758,8 +757,8 @@ async def imbetter(ctx, user: discord.Member = None):
 
     asset2 = myself.avatar_url_as(size = 128)
 
-    data2 = BytesIO(await asset.read())
-    pfp2 = Image.open(data)
+    data2 = BytesIO(await asset2.read())
+    pfp2 = Image.open(data2)
 
     pfp2 = pfp2.resize((435,435))
     imbetter.paste(pfp2, (662,683))
@@ -769,434 +768,147 @@ async def imbetter(ctx, user: discord.Member = None):
     await ctx.send (file = discord.File("profile.jpg"))
 
 
-URL_REGEX = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-OPTIONS = {
-    "1️⃣": 0,
-    "2⃣": 1,
-    "3⃣": 2,
-    "4⃣": 3,
-    "5⃣": 4,
+youtube_dl.utils.bug_reports_message = lambda: ''
+
+ytdl_format_options = {
+    'format': 'bestaudio/best',
+    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
 
+ffmpeg_options = {
+    'options': '-vn'
+}
 
-class AlreadyConnectedToChannel(commands.CommandError):
-    pass
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
 
-class NoVoiceChannel(commands.CommandError):
-    pass
+        self.data = data
 
+        self.title = data.get('title')
+        self.url = data.get('url')
 
-class QueueIsEmpty(commands.CommandError):
-    pass
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
+        if 'entries' in data:
+            # take first item from a playlist
+            data = data['entries'][0]
 
-class NoTracksFound(commands.CommandError):
-    pass
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-class PlayerIsAlreadyPaused(commands.CommandError):
-    pass
+client = commands.Bot(command_prefix='?')
 
+queue = []
 
-class NoMoreTracks(commands.CommandError):
-    pass
 
+@client.event
+async def on_member_join(member):
+    channel = discord.utils.get(member.guild.channels, name='general')
+    await channel.send(f'Welcome {member.mention}!  Ready to jam out? See `?help` command for details!')
+        
+@client.command(name='ping', help='This command returns the latency')
+async def ping(ctx):
+    await ctx.send(f'**Pong!** Latency: {round(client.latency * 1000)}ms')
 
-class NoPreviousTracks(commands.CommandError):
-    pass
+@client.command(name='hello', help='This command returns a random welcome message')
+async def hello(ctx):
+    responses = ['***grumble*** Why did you wake me up?', 'Top of the morning to you lad!', 'Hello, how are you?', 'Hi', '**Wasssuup!**']
+    await ctx.send(choice(responses))
 
+@client.command(name='die', help='This command returns a random last words')
+async def die(ctx):
+    responses = ['why have you brought my short life to an end', 'i could have done so much more', 'i have a family, kill them instead']
+    await ctx.send(choice(responses))
 
-class InvalidRepeatMode(commands.CommandError):
-    pass
 
+@client.command(name='join', help='This command makes the bot join the voice channel')
+async def join(ctx):
+    if not ctx.message.author.voice:
+        await ctx.send("You are not connected to a voice channel")
+        return
+    
+    else:
+        channel = ctx.message.author.voice.channel
 
-class RepeatMode(Enum):
-    NONE = 0
-    ONE = 1
-    ALL = 2
+    await channel.connect()
 
+@client.command(name='queue', help='This command adds a song to the queue')
+async def queue_(ctx, url):
+    global queue
 
-class Queue:
-    def __init__(self):
-        self._queue = []
-        self.position = 0
-        self.repeat_mode = RepeatMode.NONE
+    queue.append(url)
+    await ctx.send(f'`{url}` added to queue!')
 
-    @property
-    def is_empty(self):
-        return not self._queue
+@client.command(name='remove', help='This command removes an item from the list')
+async def remove(ctx, number):
+    global queue
 
-    @property
-    def current_track(self):
-        if not self._queue:
-            raise QueueIsEmpty
+    try:
+        del(queue[int(number)])
+        await ctx.send(f'Your queue is now `{queue}!`')
+    
+    except:
+        await ctx.send('Your queue is either **empty** or the index is **out of range**')
+        
+@client.command(name='play', help='This command plays songs')
+async def play(ctx):
+    global queue
 
-        if self.position <= len(self._queue) - 1:
-            return self._queue[self.position]
+    server = ctx.message.guild
+    voice_channel = server.voice_client
 
-    @property
-    def upcoming(self):
-        if not self._queue:
-            raise QueueIsEmpty
+    async with ctx.typing():
+        player = await YTDLSource.from_url(queue[0], loop=client.loop)
+        voice_channel.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
-        return self._queue[self.position + 1:]
+    await ctx.send('**Now playing:** {}'.format(player.title))
+    del(queue[0])
 
-    @property
-    def history(self):
-        if not self._queue:
-            raise QueueIsEmpty
+@client.command(name='pause', help='This command pauses the song')
+async def pause(ctx):
+    server = ctx.message.guild
+    voice_channel = server.voice_client
 
-        return self._queue[:self.position]
+    voice_channel.pause()
 
-    @property
-    def length(self):
-        return len(self._queue)
+@client.command(name='resume', help='This command resumes the song!')
+async def resume(ctx):
+    server = ctx.message.guild
+    voice_channel = server.voice_client
 
-    def add(self, *args):
-        self._queue.extend(args)
+    voice_channel.resume()
 
-    def get_next_track(self):
-        if not self._queue:
-            raise QueueIsEmpty
+@client.command(name='view', help='This command shows the queue')
+async def view(ctx):
+    await ctx.send(f'Your queue is now `{queue}!`')
 
-        self.position += 1
+@client.command(name='leave', help='This command stops makes the bot leave the voice channel')
+async def leave(ctx):
+    voice_client = ctx.message.guild.voice_client
+    await voice_client.disconnect()
 
-        if self.position < 0:
-            return None
-        elif self.position > len(self._queue) - 1:
-            if self.repeat_mode == RepeatMode.ALL:
-                self.position = 0
-            else:
-                return None
+@client.command(name='stop', help='This command stops the song!')
+async def stop(ctx):
+    server = ctx.message.guild
+    voice_channel = server.voice_client
 
-        return self._queue[self.position]
-
-    def shuffle(self):
-        if not self._queue:
-            raise QueueIsEmpty
-
-        upcoming = self.upcoming
-        random.shuffle(upcoming)
-        self._queue = self._queue[:self.position + 1]
-        self._queue.extend(upcoming)
-
-    def set_repeat_mode(self, mode):
-        if mode == "none":
-            self.repeat_mode = RepeatMode.NONE
-        elif mode == "1":
-            self.repeat_mode = RepeatMode.ONE
-        elif mode == "all":
-            self.repeat_mode = RepeatMode.ALL
-
-    def empty(self):
-        self._queue.clear()
-        self.position = 0
-
-
-class Player(wavelink.Player):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.queue = Queue()
-
-    async def connect(self, ctx, channel=None):
-        if self.is_connected:
-            raise AlreadyConnectedToChannel
-
-        if (channel := getattr(ctx.author.voice, "channel", channel)) is None:
-            raise NoVoiceChannel
-
-        await super().connect(channel.id)
-        return channel
-
-    async def teardown(self):
-        try:
-            await self.destroy()
-        except KeyError:
-            pass
-
-    async def add_tracks(self, ctx, tracks):
-        if not tracks:
-            raise NoTracksFound
-
-        if isinstance(tracks, wavelink.TrackPlaylist):
-            self.queue.add(*tracks.tracks)
-        elif len(tracks) == 1:
-            self.queue.add(tracks[0])
-            await ctx.send(f"Added {tracks[0].title} to the queue.")
-        else:
-            if (track := await self.choose_track(ctx, tracks)) is not None:
-                self.queue.add(track)
-                await ctx.send(f"Added {track.title} to the queue.")
-
-        if not self.is_playing and not self.queue.is_empty:
-            await self.start_playback()
-
-    async def choose_track(self, ctx, tracks):
-        def _check(r, u):
-            return (
-                r.emoji in OPTIONS.keys()
-                and u == ctx.author
-                and r.message.id == msg.id
-            )
-
-        embed = discord.Embed(
-            title="Choose a song",
-            description=(
-                "\n".join(
-                    f"**{i+1}.** {t.title} ({t.length//60000}:{str(t.length%60).zfill(2)})"
-                    for i, t in enumerate(tracks[:5])
-                )
-            ),
-            colour=ctx.author.colour,
-            timestamp=datetime.datetime.utcnow()
-        )
-        embed.set_author(name="Query Results")
-        embed.set_footer(text=f"Invoked by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
-
-        msg = await ctx.send(embed=embed)
-        for emoji in list(OPTIONS.keys())[:min(len(tracks), len(OPTIONS))]:
-            await msg.add_reaction(emoji)
-
-        try:
-            reaction, _ = await self.bot.wait_for("reaction_add", timeout=60.0, check=_check)
-        except asyncio.TimeoutError:
-            await msg.delete()
-            await ctx.message.delete()
-        else:
-            await msg.delete()
-            return tracks[OPTIONS[reaction.emoji]]
-
-    async def start_playback(self):
-        await self.play(self.queue.current_track)
-
-    async def advance(self):
-        try:
-            if (track := self.queue.get_next_track()) is not None:
-                await self.play(track)
-        except QueueIsEmpty:
-            pass
-
-    async def repeat_track(self):
-        await self.play(self.queue.current_track)
-
-
-class Music(commands.Cog, wavelink.WavelinkMixin):
-    def __init__(self, bot):
-        self.bot = bot
-        self.wavelink = wavelink.Client(bot=bot)
-        self.bot.loop.create_task(self.start_nodes())
-
-    @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
-        if not member.bot and after.channel is None:
-            if not [m for m in before.channel.members if not m.bot]:
-                await self.get_player(member.guild).teardown()
-
-    @wavelink.WavelinkMixin.listener()
-    async def on_node_ready(self, node):
-        print(f" Wavelink node `{node.identifier}` ready.")
-
-    @wavelink.WavelinkMixin.listener("on_track_stuck")
-    @wavelink.WavelinkMixin.listener("on_track_end")
-    @wavelink.WavelinkMixin.listener("on_track_exception")
-    async def on_player_stop(self, node, payload):
-        if payload.player.queue.repeat_mode == RepeatMode.ONE:
-            await payload.player.repeat_track()
-        else:
-            await payload.player.advance()
-
-    async def cog_check(self, ctx):
-        if isinstance(ctx.channel, discord.DMChannel):
-            await ctx.send("Music commands are not available in DMs.")
-            return False
-
-        return True
-
-    async def start_nodes(self):
-        await self.bot.wait_until_ready()
-
-        nodes = {
-            "MAIN": {
-                "host": "127.0.0.1",
-                "port": 2333,
-                "rest_uri": "http://127.0.0.1:2333",
-                "password": "youshallnotpass",
-                "identifier": "MAIN",
-                "region": "europe",
-            }
-        }
-
-        for node in nodes.values():
-            await self.wavelink.initiate_node(**node)
-
-    def get_player(self, obj):
-        if isinstance(obj, commands.Context):
-            return self.wavelink.get_player(obj.guild.id, cls=Player, context=obj)
-        elif isinstance(obj, discord.Guild):
-            return self.wavelink.get_player(obj.id, cls=Player)
-
-    @commands.command(name="connect", aliases=["join"])
-    async def connect_command(self, ctx, *, channel: t.Optional[discord.VoiceChannel]):
-        player = self.get_player(ctx)
-        channel = await player.connect(ctx, channel)
-        await ctx.send(f"Connected to {channel.name}.")
-
-    @connect_command.error
-    async def connect_command_error(self, ctx, exc):
-        if isinstance(exc, AlreadyConnectedToChannel):
-            await ctx.send("Already connected to a voice channel.")
-        elif isinstance(exc, NoVoiceChannel):
-            await ctx.send("No suitable voice channel was provided.")
-
-    @commands.command(name="disconnect", aliases=["leave"])
-    async def disconnect_command(self, ctx):
-        player = self.get_player(ctx)
-        await player.teardown()
-        await ctx.send("Disconnect.")
-
-    @commands.command(name="play")
-    async def play_command(self, ctx, *, query: t.Optional[str]):
-        player = self.get_player(ctx)
-
-        if not player.is_connected:
-            await player.connect(ctx)
-
-        if query is None:
-            if player.queue.is_empty:
-                raise QueueIsEmpty
-
-            await player.set_pause(False)
-            await ctx.send("Playback resumed.")
-
-        else:
-            query = query.strip("<>")
-            if not re.match(URL_REGEX, query):
-                query = f"ytsearch:{query}"
-
-            await player.add_tracks(ctx, await self.wavelink.get_tracks(query))
-
-    @play_command.error
-    async def play_command_error(self, ctx, exc):
-        if isinstance(exc, QueueIsEmpty):
-            await ctx.send("No songs to play as the queue is empty.")
-        elif isinstance(exc, NoVoiceChannel):
-            await ctx.send("No suitable voice channel was provided.")
-
-    @commands.command(name="pause")
-    async def pause_command(self, ctx):
-        player = self.get_player(ctx)
-
-        if player.is_paused:
-            raise PlayerIsAlreadyPaused
-
-        await player.set_pause(True)
-        await ctx.send("Playback paused.")
-
-    @pause_command.error
-    async def pause_command_error(self, ctx, exc):
-        if isinstance(exc, PlayerIsAlreadyPaused):
-            await ctx.send("Already paused.")
-
-    @commands.command(name="stop")
-    async def stop_command(self, ctx):
-        player = self.get_player(ctx)
-        player.queue.empty()
-        await player.stop()
-        await ctx.send("Playback stopped.")
-
-    @commands.command(name="next", aliases=["skip"])
-    async def next_command(self, ctx):
-        player = self.get_player(ctx)
-
-        if not player.queue.upcoming:
-            raise NoMoreTracks
-
-        await player.stop()
-        await ctx.send("Playing next track in queue.")
-
-    @next_command.error
-    async def next_command_error(self, ctx, exc):
-        if isinstance(exc, QueueIsEmpty):
-            await ctx.send("This could not be executed as the queue is currently empty.")
-        elif isinstance(exc, NoMoreTracks):
-            await ctx.send("There are no more tracks in the queue.")
-
-    @commands.command(name="previous")
-    async def previous_command(self, ctx):
-        player = self.get_player(ctx)
-
-        if not player.queue.history:
-            raise NoPreviousTracks
-
-        player.queue.position -= 2
-        await player.stop()
-        await ctx.send("Playing previous track in queue.")
-
-    @previous_command.error
-    async def previous_command_error(self, ctx, exc):
-        if isinstance(exc, QueueIsEmpty):
-            await ctx.send("This could not be executed as the queue is currently empty.")
-        elif isinstance(exc, NoPreviousTracks):
-            await ctx.send("There are no previous tracks in the queue.")
-
-    @commands.command(name="shuffle")
-    async def shuffle_command(self, ctx):
-        player = self.get_player(ctx)
-        player.queue.shuffle()
-        await ctx.send("Queue shuffled.")
-
-    @shuffle_command.error
-    async def shuffle_command_error(self, ctx, exc):
-        if isinstance(exc, QueueIsEmpty):
-            await ctx.send("The queue could not be shuffled as it is currently empty.")
-
-    @commands.command(name="repeat")
-    async def repeat_command(self, ctx, mode: str):
-        if mode not in ("none", "1", "all"):
-            raise InvalidRepeatMode
-
-        player = self.get_player(ctx)
-        player.queue.set_repeat_mode(mode)
-        await ctx.send(f"The repeat mode has been set to {mode}.")
-
-    @commands.command(name="queue")
-    async def queue_command(self, ctx, show: t.Optional[int] = 10):
-        player = self.get_player(ctx)
-
-        if player.queue.is_empty:
-            raise QueueIsEmpty
-
-        embed = discord.Embed(
-            title="Queue",
-            description=f"Showing up to next {show} tracks",
-            colour=ctx.author.colour,
-            timestamp=datetime.datetime.utcnow()
-        )
-        embed.set_author(name="Query Results")
-        embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
-        embed.add_field(
-            name="Currently playing",
-            value=getattr(player.queue.current_track, "title", "No tracks currently playing."),
-            inline=False
-        )
-        if upcoming := player.queue.upcoming:
-            embed.add_field(
-                name="Next up",
-                value="\n".join(t.title for t in upcoming[:show]),
-                inline=False
-            )
-
-        msg = await ctx.send(embed=embed)
-
-    @queue_command.error
-    async def queue_command_error(self, ctx, exc):
-        if isinstance(exc, QueueIsEmpty):
-            await ctx.send("The queue is currently empty.")
-
-
-def setup(bot):
-    bot.add_cog(Music(bot))
+    voice_channel.stop()
 
 
 
