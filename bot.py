@@ -36,7 +36,7 @@ reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
 
 os.chdir("/app")
 
-client = commands.Bot(command_prefix="vb ", Intents=intent)
+client = commands.Bot(command_prefix="vb ", intents=intent)
 
 client.remove_command("help")
 
