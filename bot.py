@@ -255,7 +255,7 @@ async def unban(ctx, *,member):
     await ctx.send(member+" was not found")
 
 
-@client.command(aliases=['ub'])
+@client.command(aliases=['m'])
 @commands.has_permissions(kick_members = True)
 async def mute(ctx,member : discord.Member):
     muted_role = ctx.guild.get_role(799700181913698371)
