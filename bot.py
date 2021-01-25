@@ -20,7 +20,7 @@ from discord import Intents
 from PIL import Image
 from io import BytesIO
 
-intent = Intents.all()
+intent = discord.Intents.all()
 
 f = open("rules2.txt","r")
 rules = f.readlines()
