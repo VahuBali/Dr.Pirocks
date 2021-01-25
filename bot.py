@@ -61,6 +61,9 @@ async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="M1 Mac Buyers Guide | Vasu Bansal"))
     print("Bot is ready")
 
+    await client.process_commands(message)
+
+
 async def ch_pr():
     await client.wait_until_ready()
 
@@ -73,8 +76,9 @@ async def ch_pr():
         await client.change_presence(activity = discord.Game(name = status))
 
         await asyncio.sleep(10)
-    await client.process_commands(ch_pr())
-    
+
+    await client.process_commands(message)
+
 client.loop.create_task(ch_pr())
 
 @client.group(invoke_without_command=True)
