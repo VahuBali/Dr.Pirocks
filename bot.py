@@ -73,10 +73,9 @@ async def ch_pr():
         await client.change_presence(activity = discord.Game(name = status))
 
         await asyncio.sleep(10)
-
+    await client.process_commands(ch_pr())
+    
 client.loop.create_task(ch_pr())
-client.process_commands(on_ready())
-
 
 @client.group(invoke_without_command=True)
 async def help(ctx):
