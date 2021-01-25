@@ -96,10 +96,6 @@ async def on_message2(msg):
 
     await client.process_commands(msg)
 
-    await client.process_commands(message)
-
-    await client.process_commands(msg)
-
 @client.command(aliasess=['rules'])
 async def rule(ctx,*,number):
     await ctx.send(rules[int(number)-1])
@@ -1363,7 +1359,6 @@ async def on_message(message):
             string = message.content
             mod_message = string[index:]
             await member_object.send("[" + message.author.display_name + "]" + mod_message)
-    client.process_commands(message)
 
 @commands.command()
 async def randgrame(self, ctx):
