@@ -3,3 +3,4 @@ discord
 praw
 pillow
 wavelink
+youtube_dl
