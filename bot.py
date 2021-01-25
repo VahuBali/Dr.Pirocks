@@ -162,7 +162,7 @@ async def rule(ctx,*,number):
 async def clear(ctx,amount=2):
     await ctx.channel.purge(limit = amount)
 
-@client.command(aliases=['c'])
+@client.command(aliases=['k'])
 @commands.has_permissions(manage_messages = True)
 async def kick(ctx,member : discord.Member,*,reason= "No reason provided"):
     await member.send("You have been kicked from the server, Because:"+reason)
