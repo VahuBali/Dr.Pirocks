@@ -75,7 +75,7 @@ async def ch_pr():
         await asyncio.sleep(10)
 
 client.loop.create_task(ch_pr())
-client.process_commands(all)
+client.process_commands(on_ready())
 
 
 @client.group(invoke_without_command=True)
