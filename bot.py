@@ -33,68 +33,8 @@ reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
 
 os.chdir("/app")
 
+client = commands.Bot(command_prefix="vb ")
 
-def get_prefix(client,message):
-
-    with open("prefixes2.json", "r") as f:
-        prefixes = json.load(f)
-
-    return prefixes[str(message.guild.id)]
-
-client = commands.Bot(command_prefix = get_prefix)
-
-
-
-@client.event
-async def on_guild_join(guild):
-
-
-    with open("prefixes2.json", "r") as f:
-        prefixes = json.load(f)
-
-    prefixes[str(guild.id)] = "vb "
-
-    with open("prefixes2.json", "w") as f:
-        json.dump(prefixes,f)
-
-
-
-
-@client.command()
-@commands.has_permissions(administrator = True)
-async def changeprefix(ctx, prefix):
-
-    with open("prefixes2.json", "r") as f:
-        prefixes = json.load(f)
-
-    prefixes[str(ctx.guild.id)] = prefix
-
-    with open("prefixes2.json", "w") as f:
-        json.dump(prefixes,f)    
-
-    await ctx.send(f"The prefix was changed to {prefix}")
-
-
-
-@client.event
-async def on_message3(msg):
-
-    try:
-        if msg.mentions[0] == client.user:
-
-            with open("prefixes2.json", "r") as f:
-                prefixes = json.load(f)
-
-            pre = prefixes[str(msg.guild.id)] 
-
-            await msg.channel.send(f"My prefix for this server is {pre}")
-
-    except:
-        pass
-
-    await client.process_commands(msg)
-
-client = commands.Bot(command_prefix = get_prefix)
 client.remove_command("help")
 
 mainshop = [{"name":"Watch", "price": 1000, "description": "Check Time"},
