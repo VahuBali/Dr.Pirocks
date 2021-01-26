@@ -174,8 +174,10 @@ async def kick(ctx,member : discord.Member,*,reason= "No reason provided"):
     await member.kick(reason=reason)
 
 @client.command()
-async def DM(ctx, member : discord.Member, textmessage):
+async def DM(ctx, member : discord.Member, *, textmessage):
     await member.send(textmessage)
+
+    em=discord.Embed(title="We have DMd {member}, {textmessage}", descirpiton = "If you would like to send another message just type in the same command")
 
 
 
