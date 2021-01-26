@@ -331,9 +331,6 @@ async def beg(ctx):
 
     users = await get_bank_data()
 
-    
-
-
     earnings = random.randrange(101)
 
     await ctx.send(f"**Dr.Pirocks gave you {earnings} moolah now use this money to do something good for the planet!!**")
@@ -342,6 +339,13 @@ async def beg(ctx):
 
     with open("mainbank.json", "w") as f:
         json.dump(users,f)
+
+    async def beg_error(ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            msg = 'Bro chillax you need to let Dr.Pirocks take some rest, please try again in {:.2f}s'.format(error.retry_after)
+            await ctx.send(msg)
+        else:
+            raise error
 
 @client.command(pass_context=True)
 async def withdraw(ctx,amount = None):
