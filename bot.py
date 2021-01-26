@@ -235,7 +235,8 @@ async def podcast(ctx):
 @client.command()
 async def vote(ctx):
     embed=discord.Embed(title="Vote for me", url = "https://top.gg/bot/788895628511281182", description = "Vote for this bot on top.gg now")
-
+    await ctx.send(embed=embed)
+    
 @client.command()
 async def joindis(ctx):
     embed=discord.Embed(title="Discord Support", url="https://discord.gg/G2KgVtyaR5", description="This is the link to the Vasu Bansal Discord and support server for this bot", color=0xFF5733)
