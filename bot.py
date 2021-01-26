@@ -15,7 +15,7 @@ import typing as t
 import re
 import wavelink
 from discord import Intents
-
+from discord.utils import find
 
 from PIL import Image
 from io import BytesIO
@@ -177,10 +177,19 @@ async def kick(ctx,member : discord.Member,*,reason= "No reason provided"):
 async def DM(ctx, member : discord.Member, *, textmessage):
     await member.send(textmessage)
 
-    em=discord.Embed(title=f"We have DMd {member}, {textmessage}", descirpiton = "If you would like to send another message just type in the same command")
+    em=discord.Embed(title=f"We have DMd {member}, {textmessage}", descirpiton = "If you would like to send another message just type in the same command", color = discord.Colour("#2D9ACA"))
 
     await ctx.send(embed=em)
 
+@client.event
+async def on_guild_join(guild):
+    general = find(lambda x: x.name == 'general',  guild.text_channels)
+    if general and general.permissions_for(guild.me).send_messages:
+        em = discord.Embed(title = "Thank you for adding me but before you start using me let me give you some background. My name is Dr.Pirocks and I am the only bot you will ever need. To start using me just type vb help into the chatbox and then you can follow the directions over their")
+        em.add_field(name="Credits", value = "Vasu Bansal")
+        await general.send(embed=em)
+
+    
 
 @client.command()
 async def meme(ctx):
