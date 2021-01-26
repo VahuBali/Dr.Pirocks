@@ -782,6 +782,8 @@ async def imbetter(ctx, user: discord.Member = None):
 
     await ctx.send (file = discord.File("profile.jpg"))
 
+
+
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ytdl_format_options = {
@@ -826,7 +828,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-client = commands.Bot(command_prefix='?')
 
 queue = []
 
