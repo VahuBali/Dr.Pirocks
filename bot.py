@@ -179,6 +179,7 @@ async def DM(ctx, member : discord.Member, *, textmessage):
 
     em=discord.Embed(title="We have DMd {member}, {textmessage}", descirpiton = "If you would like to send another message just type in the same command")
 
+    await ctx.send(embed=em)
 
 
 @client.command()
