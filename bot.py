@@ -34,7 +34,6 @@ reddit = praw.Reddit(client_id = "AjkL0nqGEdPZYw",
                      password = "Vasu@5950",
                      user_agent = "pythonmemepraw")
 
-os.chdir("/app")
 
 client = commands.Bot(command_prefix="vb ")
 
