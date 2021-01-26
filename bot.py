@@ -104,7 +104,7 @@ async def help(ctx):
 
     em.add_field(name = "Moderation", value = "```help_moderation```")
     em.add_field(name = "Fun", value = "```help_fun````")
-    em.add_field(name = "Economy", value = "```help_economy")
+    em.add_field(name = "Economy", value = "```help_economy```")
 
     await ctx.send(embed = em)
 
@@ -119,6 +119,8 @@ async def help_moderation(ctx):
     em.add_field(name="unmute", value = "unmutes members so that they can start talking again")
     em.addfield(name = "clear", value="clears messages from value provided, Ex: vb clear 300, <-- this will clear 300 messages")
 
+    await ctx.send(embed=em)
+
 @client.group(invoke_without_command=True)
 async def help_fun(ctx):
     em = discord.Embed(title = "Fun", description= 'Fun commands', color = ctx.author.colour)
@@ -127,6 +129,8 @@ async def help_fun(ctx):
     em.add_field(name = "meme", value = "you can ask Dr.Pirocks to give you a meme to laugh at")
     em.add_field(name = "cleanmeme", value = "you can ask Dr.Pirocks to give you a meme to laugh at that is appropriate and doens't have any bad words or vulgar refrences")
     em.add_field(name='tictactoe', value = "mention two people (yourself and somebody else) to play tic tac toe with, to place your marker somewhere then you have to type vb place (and then number location like the top left would be 1 and the top right would be 3")
+
+    await ctx.send(embed=em)
 
 @client.group(invoke_without_command=True)
 async def help_economy(ctx):
@@ -142,6 +146,7 @@ async def help_economy(ctx):
     em.add_field(name = "shop", value = "shop for items using your moolah")
     em.add_field(name="bag", value = "check all the items you have bought from the shop in your bag")
 
+    await ctx.send(embed=em)
 
 @client.event
 async def on_message2(msg):
