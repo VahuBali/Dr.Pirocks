@@ -100,15 +100,15 @@ async def die(ctx):
 
 @client.group(invoke_without_command=True)
 async def help(ctx):
-    em = discord.Embed(title = "Help", description = "Use **vb help** <command> for extended information on a command.",color = ctx.author.colour)
+    em = discord.Embed(title = "Help", description = "Use **vb help**_<command> for extended information on a command.",color = ctx.author.colour)
 
-    em.add_field(name = "Moderation", value = "```help moderation```")
-    em.add_field(name = "Fun", value = "```help fun````")
-    em.add_field(name = "Economy", value = "bal, beg, withdraw, dep, pay, slots, rob, shop, bag")
+    em.add_field(name = "Moderation", value = "```help_moderation```")
+    em.add_field(name = "Fun", value = "```help_fun````")
+    em.add_field(name = "Economy", value = "```help_economy")
 
     await ctx.send(embed = em)
 
-@client.group(invoke_without_command=True, aliases=['help moderation'])
+@client.group(invoke_without_command=True)
 async def help_moderation(ctx):
     em = discord.Embed(title = "Moderation", description = "Moderation Commands",color = ctx.author.colour)
 
@@ -119,7 +119,7 @@ async def help_moderation(ctx):
     em.add_field(name="unmute", value = "unmutes members so that they can start talking again")
     em.addfield(name = "clear", value="clears messages from value provided, Ex: vb clear 300, <-- this will clear 300 messages")
 
-@client.group(invoke_without_command=True, aliases=['help fun'])
+@client.group(invoke_without_command=True)
 async def help_fun(ctx):
     em = discord.Embed(title = "Fun", description= 'Fun commands', color = ctx.author.colour)
 
@@ -128,7 +128,7 @@ async def help_fun(ctx):
     em.add_field(name = "cleanmeme", value = "you can ask Dr.Pirocks to give you a meme to laugh at that is appropriate and doens't have any bad words or vulgar refrences")
     em.add_field(name='tictactoe', value = "mention two people (yourself and somebody else) to play tic tac toe with, to place your marker somewhere then you have to type vb place (and then number location like the top left would be 1 and the top right would be 3")
 
-@client.group(invoke_without_command=True, aliases=['help economy'])
+@client.group(invoke_without_command=True)
 async def help_economy(ctx):
     em = discord.Embed(title = "Fun", description= 'Fun commands', color = ctx.author.colour)
 
