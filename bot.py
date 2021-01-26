@@ -15,8 +15,6 @@ import typing as t
 import re
 import wavelink
 from discord import Intents
-from discord.ext import commands, tasks
-from discord.voice_client import VoiceClient
 
 
 from PIL import Image
@@ -64,6 +62,7 @@ async def on_ready():
     print("Bot is ready")
 
 
+
 async def ch_pr():
     await client.wait_until_ready()
 
@@ -81,7 +80,24 @@ async def ch_pr():
 client.loop.create_task(ch_pr())
 discord.Intents.all()
 
+@client.event
+async def on_member_join(member):
+    channel = discord.utils.get(member.guild.channels, name='general')
+    await channel.send(f'Welcome {member.mention}!  Ready to jam out? See `?help` command for details!')
+        
+@client.command(name='ping', help='This command returns the latency')
+async def ping(ctx):
+    await ctx.send(f'**Pong!** Latency: {round(client.latency * 1000)}ms')
 
+@client.command(name='hello', help='This command returns a random welcome message')
+async def hello(ctx):
+    responses = ['***grumble*** Why did you wake me up?', 'Top of the morning to you lad!', 'Hello, how are you?', 'Hi', '**Wasssuup!**']
+    await ctx.send(choice(responses))
+
+@client.command(name='die', help='This command returns a random last words')
+async def die(ctx):
+    responses = ['why have you brought my short life to an end', 'i could have done so much more', 'i have a family, kill them instead']
+    await ctx.send(choice(responses))
 
 @client.group(invoke_without_command=True)
 async def help(ctx):
@@ -767,7 +783,6 @@ async def imbetter(ctx, user: discord.Member = None):
 
     await ctx.send (file = discord.File("profile.jpg"))
 
-
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ytdl_format_options = {
@@ -817,24 +832,7 @@ client = commands.Bot(command_prefix='?')
 queue = []
 
 
-@client.event
-async def on_member_join(member):
-    channel = discord.utils.get(member.guild.channels, name='general')
-    await channel.send(f'Welcome {member.mention}!  Ready to jam out? See `?help` command for details!')
-        
-@client.command(name='ping', help='This command returns the latency')
-async def ping(ctx):
-    await ctx.send(f'**Pong!** Latency: {round(client.latency * 1000)}ms')
 
-@client.command(name='hello', help='This command returns a random welcome message')
-async def hello(ctx):
-    responses = ['***grumble*** Why did you wake me up?', 'Top of the morning to you lad!', 'Hello, how are you?', 'Hi', '**Wasssuup!**']
-    await ctx.send(choice(responses))
-
-@client.command(name='die', help='This command returns a random last words')
-async def die(ctx):
-    responses = ['why have you brought my short life to an end', 'i could have done so much more', 'i have a family, kill them instead']
-    await ctx.send(choice(responses))
 
 
 @client.command(name='join', help='This command makes the bot join the voice channel')
