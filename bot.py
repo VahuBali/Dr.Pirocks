@@ -117,7 +117,7 @@ async def help_moderation(ctx):
     em.add_field(name="unban", value="unbans members allowing them to join back to the server")
     em.add_field(name="mute", value = "mutes members so that they can't talk")
     em.add_field(name="unmute", value = "unmutes members so that they can start talking again")
-    em.addfield(name = "clear", value="clears messages from value provided, Ex: vb clear 300, <-- this will clear 300 messages")
+    em.add_field(name = "clear", value="clears messages from value provided, Ex: vb clear 300, <-- this will clear 300 messages")
 
     await ctx.send(embed=em)
 
@@ -174,6 +174,12 @@ async def kick(ctx,member : discord.Member,*,reason= "No reason provided"):
     await member.kick(reason=reason)
 
 @client.command()
+async def DM(ctx, member : discord.Member, textmessage):
+    await member.send(textmessage)
+
+
+
+@client.command()
 async def meme(ctx):
 
     subreddit = reddit.subreddit("memes")
@@ -225,6 +231,10 @@ async def youtube(ctx):
 async def podcast(ctx):
     embed=discord.Embed(title="Talk Tech Teen Tech Podcast", url="https://redcircle.com/talk-tech-teen-tech", description="This is the link to the podcast that was created by Vasu Bansal and in this podcast we talk about tech through the prespective of school going teenagers", color=0xFF5733)
     await ctx.send(embed=embed)
+
+@client.command()
+async def vote(ctx):
+    embed=discord.Embed(title="Vote for me", url = "https://top.gg/bot/788895628511281182", description = "Vote for this bot on top.gg now")
 
 @client.command()
 async def joindis(ctx):
