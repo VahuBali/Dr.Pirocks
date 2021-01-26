@@ -102,11 +102,46 @@ async def die(ctx):
 async def help(ctx):
     em = discord.Embed(title = "Help", description = "Use **vb help** <command> for extended information on a command.",color = ctx.author.colour)
 
-    em.add_field(name = "Moderation", value = "kick,ban,mute,clear")
-    em.add_field(name = "Fun", value = "trash, meme, cleanmeme")
+    em.add_field(name = "Moderation", value = "```help moderation```")
+    em.add_field(name = "Fun", value = "```help fun````")
     em.add_field(name = "Economy", value = "bal, beg, withdraw, dep, pay, slots, rob, shop, bag")
 
     await ctx.send(embed = em)
+
+@client.group(invoke_without_command=True, aliases=['help moderation'])
+async def help_moderation(ctx):
+    em = discord.Embed(title = "Moderation", description = "Moderation Commands",color = ctx.author.colour)
+
+    em.add_field(name="kick", value = "Admin can kick members")
+    em.add_field(name="ban", value="Bans members from servers")
+    em.add_field(name="unban", value="unbans members allowing them to join back to the server")
+    em.add_field(name="mute", value = "mutes members so that they can't talk")
+    em.add_field(name="unmute", value = "unmutes members so that they can start talking again")
+    em.addfield(name = "clear", value="clears messages from value provided, Ex: vb clear 300, <-- this will clear 300 messages")
+
+@client.group(invoke_without_command=True, aliases=['help fun'])
+async def help_fun(ctx):
+    em = discord.Embed(title = "Fun", description= 'Fun commands', color = ctx.author.colour)
+
+    em.add_field(name="trash", value = "you can trash anybody's picture in the fire just by doing vb trash @mention")
+    em.add_field(name = "meme", value = "you can ask Dr.Pirocks to give you a meme to laugh at")
+    em.add_field(name = "cleanmeme", value = "you can ask Dr.Pirocks to give you a meme to laugh at that is appropriate and doens't have any bad words or vulgar refrences")
+    em.add_field(name='tictactoe', value = "mention two people (yourself and somebody else) to play tic tac toe with, to place your marker somewhere then you have to type vb place (and then number location like the top left would be 1 and the top right would be 3")
+
+@client.group(invoke_without_command=True, aliases=['help economy'])
+async def help_economy(ctx):
+    em = discord.Embed(title = "Fun", description= 'Fun commands', color = ctx.author.colour)
+
+    em.add_field(name="bal", value = "find the amount of moolah you have in your wallet and bank")
+    em.add_field(name="beg", value = "don't deny it you are a poor man but don't worry just type in vb beg and Dr.Pirocks will give you some cash")
+    em.add_field(name = "withdraw", value = "You can withdraw your moolah from your bank to use to pay people or something like that")
+    em.add_field(name="dep", value = "deposit moolah from wallet to bank so you can't get robbed")
+    em.add_field(name="pay", value = "pay people moolah")
+    em.add_field(name = "slots", value = "gamble your moolah for the chance of winning double but also the chance of losing that amount")
+    em.add_field(name="rob", value = "rob those people and live the life of fortunes")
+    em.add_field(name = "shop", value = "shop for items using your moolah")
+    em.add_field(name="bag", value = "check all the items you have bought from the shop in your bag")
+
 
 @client.event
 async def on_message2(msg):
@@ -178,20 +213,23 @@ async def cleanmeme(ctx):
 
 @client.command()
 async def youtube(ctx):
-    await ctx.send("Vasu Bansal's YouTube channel can be found at https://www.youtube.com/channel/UCCzfHZSA8nEnx_QTFlq6mHA")
+    embed=discord.Embed(title="Vasu Bansal YouTube", url="https://www.youtube.com/channel/UCCzfHZSA8nEnx_QTFlq6mHA", description="This is the link to the Vasu Bansal YouTube channel go subscribe", color=0xFF5733)
+    await ctx.send(embed=embed)
 
 @client.command()
 async def podcast(ctx):
-    await ctx.send("Vasu Bansal's Podcast can be found at https://redcircle.com/talk-tech-teen-tech or on Spotify, Apple Podcasts, or anywhere you listen to your podcasts!")
+    embed=discord.Embed(title="Talk Tech Teen Tech Podcast", url="https://redcircle.com/talk-tech-teen-tech", description="This is the link to the podcast that was created by Vasu Bansal and in this podcast we talk about tech through the prespective of school going teenagers", color=0xFF5733)
+    await ctx.send(embed=embed)
 
 @client.command()
 async def joindis(ctx):
-    await ctx.send("Join the vbYT discord where you can also ask any questions about this bot using this link https://discord.gg/npzKUsG9PS")
+    embed=discord.Embed(title="Discord Support", url="https://discord.gg/G2KgVtyaR5", description="This is the link to the Vasu Bansal Discord and support server for this bot", color=0xFF5733)
+    await ctx.send(embed=embed)
 
 @client.command()
 async def inv(ctx):
-    await ctx.send("Get the Admins to click this link to add this bot https://discord.com/api/oauth2/authorize?client_id=788895628511281182&permissions=8&scope=bot")
-
+    embed=discord.Embed(title="Invite to server", url="https://discord.com/api/oauth2/authorize?client_id=788895628511281182&permissions=8&scope=bot", description="Add this bot to your server with this link ", color=0xFF5733)
+    await ctx.send(embed=embed)
 
 @client.command(aliases=['b'])
 @commands.has_permissions(ban_members = True)
@@ -225,6 +263,15 @@ async def mute(ctx,member : discord.Member):
     await member.add_roles(muted_role)
 
     await ctx.send(member.mention + " has been muted")
+
+@client.command(aliases=['um'])
+@commands.has_permissions(kick_members = True)
+async def unmute(ctx,member : discord.Member):
+    muted_role = ctx.guild.get_role(799700181913698371)
+
+    await member.remove_roles(muted_role)
+
+    await ctx.send(member.mention + " has been unmuted")
 
 
 
