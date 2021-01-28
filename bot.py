@@ -251,7 +251,7 @@ async def vote(ctx):
     
 @client.command()
 async def joindis(ctx):
-    embed=discord.Embed(title="Discord Support", url="https://discord.gg/G2KgVtyaR5", description="This is the link to the Vasu Bansal Discord and support server for this bot", color=0xFF5733)
+    embed=discord.Embed(title="Discord Support", url="https://discord.gg/G2KgVtyaR5", description="Join the vbYT gang the official home of the Vasu Bansal YouTube, Talk Tech Teen Tech Podcast, and also the home of all of Vasu's known friends or even unknown humans who want to join... on this server we do many events as well as huge giveaways, IN FACT WE ARE DOING A 1 MILLION DANK MEMER AND 1 MILLION DR.PIROCKS MOOLAH GIVEAWAY ONCE WE HIT 20 MEMBERS And as you know these coins are transferred to any server so if you win the million dank memer coins then you can literally end up being one of the richest people in any of your servers... Another thing we do often on our server is events. We do all games from zombsroyale to Among Us and everything in between with prizes that are insanely high for the 1st 2nd and 3rd place winners... which as i previously said can be transfered to any server so if you win you will end up being one of the richest people in any server. If you want to join my server all you have to do is click the link and join the server and have a blast!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", color=0xFF5733)
     await ctx.send(embed=embed)
 
 @client.command()
