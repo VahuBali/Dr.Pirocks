@@ -16,7 +16,6 @@ import re
 import wavelink
 from discord import Intents
 from discord.utils import find
-import aiofiles
 from PIL import Image
 from io import BytesIO
 from discord.voice_client import VoiceClient
