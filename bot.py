@@ -16,9 +16,10 @@ import re
 import wavelink
 from discord import Intents
 from discord.utils import find
-
+import aiofiles
 from PIL import Image
 from io import BytesIO
+from discord.voice_client import VoiceClient
 
 intent = discord.Intents.all()
 
@@ -84,6 +85,7 @@ async def on_member_join(member):
     channel = discord.utils.get(member.guild.channels, name='general')
     await channel.send(f'Welcome {member.mention}!  Ready to jam out? See `?help` command for details!')
         
+
 @client.command(name='ping', help='This command returns the latency')
 async def ping(ctx):
     await ctx.send(f'**Pong!** Latency: {round(client.latency * 1000)}ms')
@@ -103,9 +105,9 @@ async def help(ctx):
     em = discord.Embed(title = "Help", description = "Use **vb help**_<command> for extended information on a command.",color = ctx.author.colour)
 
     em.add_field(name = "Moderation", value = "```help_moderation```")
-    em.add_field(name = "Fun", value = "```help_fun````")
+    em.add_field(name = "Fun", value = "```help_fun```")
     em.add_field(name = "Economy", value = "```help_economy```")
-
+    em.add_field(name = "Misc", value = "```help_misc```")
     await ctx.send(embed = em)
 
 @client.group(invoke_without_command=True)
@@ -129,6 +131,7 @@ async def help_fun(ctx):
     em.add_field(name = "meme", value = "you can ask Dr.Pirocks to give you a meme to laugh at")
     em.add_field(name = "cleanmeme", value = "you can ask Dr.Pirocks to give you a meme to laugh at that is appropriate and doens't have any bad words or vulgar refrences")
     em.add_field(name='tictactoe', value = "mention two people (yourself and somebody else) to play tic tac toe with, to place your marker somewhere then you have to type vb place (and then number location like the top left would be 1 and the top right would be 3")
+    em.add_field(name="imbetter", value = "you can make yourself better then anybody by doing vb imbetter @mention")
 
     await ctx.send(embed=em)
 
@@ -147,6 +150,14 @@ async def help_economy(ctx):
     em.add_field(name="bag", value = "check all the items you have bought from the shop in your bag")
 
     await ctx.send(embed=em)
+
+@client.group(invoke_without_command=True)
+async def help_misc(ctx):
+    em = discord.Embed(title = "Misc", value = "Miscilanious commands")
+
+    em.add_field(name = 'youtube', value = "Subscribe to Vasu's YouTube channel")
+    em.add_field(name = 'podcast', value = r'check out Vasu podcast using the link')
+    em.add_field(name = "joindis", value = r"join the vbYT discord where you can get support for this bot and other great features. ")
 
 @client.event
 async def on_message2(msg):
@@ -863,129 +874,6 @@ async def imbetter(ctx, user: discord.Member = None):
 
 
 
-youtube_dl.utils.bug_reports_message = lambda: ''
-
-ytdl_format_options = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-    'restrictfilenames': True,
-    'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
-}
-
-ffmpeg_options = {
-    'options': '-vn'
-}
-
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-
-class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
-        super().__init__(source, volume)
-
-        self.data = data
-
-        self.title = data.get('title')
-        self.url = data.get('url')
-
-    @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
-        loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
-
-        if 'entries' in data:
-            # take first item from a playlist
-            data = data['entries'][0]
-
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
-
-
-
-queue = []
-
-
-
-
-
-@client.command(name='join', help='This command makes the bot join the voice channel')
-async def join(ctx):
-    if not ctx.message.author.voice:
-        await ctx.send("You are not connected to a voice channel")
-        return
-    
-    else:
-        channel = ctx.message.author.voice.channel
-
-    await channel.connect()
-
-@client.command(name='queue', help='This command adds a song to the queue')
-async def queue_(ctx, url):
-    global queue
-
-    queue.append(url)
-    await ctx.send(f'`{url}` added to queue!')
-
-@client.command(name='remove', help='This command removes an item from the list')
-async def remove(ctx, number):
-    global queue
-
-    try:
-        del(queue[int(number)])
-        await ctx.send(f'Your queue is now `{queue}!`')
-    
-    except:
-        await ctx.send('Your queue is either **empty** or the index is **out of range**')
-        
-@client.command(name='play', help='This command plays songs')
-async def play(ctx):
-    global queue
-
-    server = ctx.message.guild
-    voice_channel = server.voice_client
-
-    async with ctx.typing():
-        player = await YTDLSource.from_url(queue[0], loop=client.loop)
-        voice_channel.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
-
-    await ctx.send('**Now playing:** {}'.format(player.title))
-    del(queue[0])
-
-@client.command(name='pause', help='This command pauses the song')
-async def pause(ctx):
-    server = ctx.message.guild
-    voice_channel = server.voice_client
-
-    voice_channel.pause()
-
-@client.command(name='resume', help='This command resumes the song!')
-async def resume(ctx):
-    server = ctx.message.guild
-    voice_channel = server.voice_client
-
-    voice_channel.resume()
-
-@client.command(name='view', help='This command shows the queue')
-async def view(ctx):
-    await ctx.send(f'Your queue is now `{queue}!`')
-
-@client.command(name='leave', help='This command stops makes the bot leave the voice channel')
-async def leave(ctx):
-    voice_client = ctx.message.guild.voice_client
-    await voice_client.disconnect()
-
-@client.command(name='stop', help='This command stops the song!')
-async def stop(ctx):
-    server = ctx.message.guild
-    voice_channel = server.voice_client
-
-    voice_channel.stop()
 
 
 
