@@ -221,7 +221,7 @@ async def reactrole(ctx, emoji, role: discord.Role, *, message):
 
 
 @client.event
-async def on_message2(msg):
+async def on_message(msg):
     for word in filtered_words:
         if word in msg.content:
             await msg.delete()
