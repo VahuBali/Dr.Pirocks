@@ -162,7 +162,7 @@ async def help_misc(ctx):
     await ctx.send(embed=em)
 
 @client.command()
-async def spam(ctx):
+async def spam(self, ctx):
   self.isrunning = True
   await ctx.send("MAKE MORE COMPOST")
 
@@ -172,7 +172,7 @@ async def spam(ctx):
 
 
 @client.command()
-async def stopspam(ctx):
+async def stopspam(self, ctx):
   self.isrunning = False
 
   await ctx.send("Stopped making more compost :(")
