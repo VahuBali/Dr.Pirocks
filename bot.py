@@ -161,6 +161,21 @@ async def help_misc(ctx):
 
     await ctx.send(embed=em)
 
+@client.command()
+async def spam(ctx):
+  self.isrunning = True
+  await ctx.send("MAKE MORE COMPOST")
+
+  while self.isrunning:
+    # do stuff here
+    await asyncio.sleep(1)
+
+
+@client.command()
+async def stopspam(ctx):
+  self.isrunning = False
+
+  await ctx.send("Stopped making more compost :(")
 
 @client.event
 async def on_ready():
